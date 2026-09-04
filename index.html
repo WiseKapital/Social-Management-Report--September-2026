@@ -212,7 +212,7 @@
           <tbody id="summaryTableBody" class="divide-y divide-slate-200 text-slate-800 bg-white">
             <tr>
               <td colspan="6" class="py-8 text-center text-slate-400 font-medium italic">
-                We dont have data yet
+                No hay datos cargados actualmente. Pega tu nueva información para actualizar.
               </td>
             </tr>
           </tbody>
@@ -230,8 +230,44 @@
       </div>
     </div>
 
-    <!-- CHARTS ROW 1 -->
+    <!-- GRÁFICOS FILA 1: FINANCIAL BREAKDOWN & REGISTRATIONS VS FTDS (COLOCADOS PRIMERO) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 1. Campaign Financial Breakdown (Izquierda, 2 cols) -->
+      <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-bold font-display text-slate-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
+              Campaign Financial Breakdown
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Amount spent, Revenue and Net Profit by Campaign</p>
+          </div>
+        </div>
+        <div class="relative h-64 sm:h-72 w-full">
+          <canvas id="campaignBarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 2. Registrations vs. FTDs (Derecha, 1 col) -->
+      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <h2 class="text-base font-bold font-display text-slate-900">Registrations vs. FTDs</h2>
+            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <p class="text-xs text-slate-500 mb-4">Acquisition volume vs conversion</p>
+        </div>
+        <div class="relative h-64 w-full">
+          <canvas id="conversionBarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS FILA 2: DAILY AMOUNT SPENT VS REVENUE & REVENUE BY CAMPAIGN -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 3. Daily Amount Spent vs Conversion Value (Izquierda, 2 cols) -->
       <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
@@ -255,6 +291,7 @@
         </div>
       </div>
 
+      <!-- 4. Revenue by Campaign Doughnut (Derecha, 1 col) -->
       <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-1">
@@ -274,57 +311,21 @@
       </div>
     </div>
 
-    <!-- CHARTS ROW 2 -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h2 class="text-base font-bold font-display text-slate-900 flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
-              Campaign Financial Breakdown
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Amount spent, Revenue and Net Profit by Campaign</p>
-          </div>
-        </div>
-        <div class="relative h-64 sm:h-72 w-full">
-          <canvas id="campaignBarChart"></canvas>
-        </div>
-      </div>
-
-      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <h2 class="text-base font-bold font-display text-slate-900">Registrations vs. FTDs</h2>
-            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <i data-lucide="users" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <p class="text-xs text-slate-500 mb-4">Acquisition volume vs conversion</p>
-        </div>
-        <div class="relative h-64 w-full">
-          <canvas id="conversionBarChart"></canvas>
-        </div>
-      </div>
-    </div>
-
   </main>
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // METAS DE KPI ACTUALIZADAS
     const targetKPIs = {
       budget: 1100,
       revenue: 3300,
       profit: 2200,
-      signups: 250, // Actualizado a 250
-      users: 20     // Actualizado a 20
+      signups: 250,
+      users: 20
     };
 
-    // RUN RATE CALCULADO PARA SEPTIEMBRE (2 DÍAS DE 30)
     const DAYS_ELAPSED = 2;
     const TOTAL_DAYS_IN_MONTH = 30;
 
-    // ESTRUCTURA LISTA PARA NUEVOS DATOS
     const rawData = [];
 
     const fmtMoney = (n) => "$" + Math.round(Number(n)).toLocaleString('en-US');
@@ -344,7 +345,39 @@
     }
 
     function initCharts() {
-      // 1. Gráfico Diario
+      // 1. Campaign Financial Breakdown
+      new Chart(document.getElementById('campaignBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'Amount spent ($)', data: [], backgroundColor: 'rgba(99, 102, 241, 0.85)', borderRadius: 6 },
+            { label: 'Revenue ($)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6 },
+            { label: 'Profit ($)', data: [], backgroundColor: 'rgba(20, 184, 166, 0.85)', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { ticks: { callback: (v) => '$' + v } } }
+        }
+      });
+
+      // 2. Registrations vs FTDs
+      new Chart(document.getElementById('conversionBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'Registrations', data: [], backgroundColor: 'rgba(245, 158, 11, 0.85)', borderRadius: 6 },
+            { label: 'FTDs', data: [], backgroundColor: 'rgba(139, 92, 246, 0.85)', borderRadius: 6 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+      });
+
+      // 3. Daily Amount Spent vs Conversion Value
       new Chart(document.getElementById('dailyBarChart').getContext('2d'), {
         type: 'bar',
         data: {
@@ -365,7 +398,7 @@
         }
       });
 
-      // 2. Gráfico Dona
+      // 4. Revenue by Campaign Doughnut
       new Chart(document.getElementById('campaignPieChart').getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -373,38 +406,6 @@
           datasets: [{ data: [], backgroundColor: ['#6366F1', '#06B6D4', '#E2E8F0'] }]
         },
         options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false } } }
-      });
-
-      // 3. Gráfico Financiero de Campañas
-      new Chart(document.getElementById('campaignBarChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [
-            { label: 'Amount spent ($)', data: [], backgroundColor: 'rgba(99, 102, 241, 0.85)', borderRadius: 6 },
-            { label: 'Revenue ($)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6 },
-            { label: 'Profit ($)', data: [], backgroundColor: 'rgba(20, 184, 166, 0.85)', borderRadius: 6 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { y: { ticks: { callback: (v) => '$' + v } } }
-        }
-      });
-
-      // 4. Gráfico Registros vs FTDs
-      new Chart(document.getElementById('conversionBarChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [
-            { label: 'Registrations', data: [], backgroundColor: 'rgba(245, 158, 11, 0.85)', borderRadius: 6 },
-            { label: 'FTDs', data: [], backgroundColor: 'rgba(139, 92, 246, 0.85)', borderRadius: 6 }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
       });
     }
 
@@ -418,7 +419,6 @@
       document.getElementById('kpiSignups').textContent = totSignups;
       document.getElementById('kpiFtd').textContent = totFtd;
 
-      // Cálculo Run Rate: (MTD / 2) * 30 Días de Septiembre
       const rrBud = (totBudget / DAYS_ELAPSED) * TOTAL_DAYS_IN_MONTH;
       const rrRev = (totRev / DAYS_ELAPSED) * TOTAL_DAYS_IN_MONTH;
       const rrProf = (totalProfit / DAYS_ELAPSED) * TOTAL_DAYS_IN_MONTH;
